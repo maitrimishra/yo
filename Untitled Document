@@ -1,394 +1,517 @@
-its-soils-tutorial/precomputed-output/otus/log_20150120222742.txt
-its-soils-tutorial/precomputed-output/otus/otu_table_mc2_w_tax.biom
-its-soils-tutorial/precomputed-output/otus/new_refseqs.fna
-its-soils-tutorial/precomputed-output/otus/step4_otus/
-its-soils-tutorial/precomputed-output/otus/step4_otus/failures_otus.txt
-its-soils-tutorial/precomputed-output/otus/step4_otus/step4_rep_set.fna
-its-soils-tutorial/precomputed-output/otus/step4_otus/failures_otus.log
-its-soils-tutorial/precomputed-output/otus/step4_otus/failures_clusters.uc
-its-soils-tutorial/precomputed-output/otus/otu_table_mc2.biom
-its-soils-tutorial/precomputed-output/otus/index.html
-its-soils-tutorial/precomputed-output/otus/final_otu_map_mc2.txt
-its-soils-tutorial/precomputed-output/otus/final_otu_map.txt
-its-soils-tutorial/precomputed-output/otus/step1_otus/
-its-soils-tutorial/precomputed-output/otus/step1_otus/step1_rep_set.fna
-its-soils-tutorial/precomputed-output/otus/step1_otus/seqs_otus.log
-its-soils-tutorial/precomputed-output/otus/step1_otus/seqs_otus.txt
-its-soils-tutorial/precomputed-output/otus/step1_otus/seqs_failures.txt
-its-soils-tutorial/precomputed-output/otus/step1_otus/failures.fasta
-its-soils-tutorial/precomputed-output/otus/step1_otus/seqs_clusters.uc
-qiime@qiime-190-virtual-box:~$ tar zxvf its_12_11_otus.tgz
-its_12_11_otus/
-its_12_11_otus/taxonomy/
-its_12_11_otus/taxonomy/99_otu_taxonomy.txt.gz
-its_12_11_otus/taxonomy/97_otu_taxonomy.txt.gz
-its_12_11_otus/README.md
-its_12_11_otus/rep_set/
-its_12_11_otus/rep_set/97_otus.fasta.gz
-its_12_11_otus/rep_set/99_otus.fasta.gz
-qiime@qiime-190-virtual-box:~$ check_id_map.py -mFasting_Map.txt -o mapping_output
-
-This script has been renamed validate_mapping_file.py for clarity. For help, call validate_mapping_file.py -h
-
-qiime@qiime-190-virtual-box:~$ validate_mapping_file.py -mFasting_Map.txt -o mapping_output
-Error in validate_mapping_file.py: option -m: file does not exist: 'Fasting_Map.txt'
+qiime@qiime-190-virtual-box:~$ validate_mapping_file.py -mFasting_Map.txt -omapping_output
+No errors or warnings were found in mapping file.
+qiime@qiime-190-virtual-box:~$ split_libraries.py -mFasting_Map.txt -fFasting_Example.fna -qFasting_Example.qual -osplit_library_output
+Error in split_libraries.py: No filepaths match pattern/name 'Fasting_Example.fna'. All patterns must be matched at least once.
 
 If you need help with QIIME, see:
 http://help.qiime.org
-qiime@qiime-190-virtual-box:~$ validate_mapping_file.py -mcostello_timeseries_map.txt -omapping_output
-Errors and/or warnings detected in mapping file.  Please check the log and html file for details.
-qiime@qiime-190-virtual-box:~$ validate_mapping_file.py -mcostello_timeseries_map.txt -o mapping_output
-Errors and/or warnings detected in mapping file.  Please check the log and html file for details.
-qiime@qiime-190-virtual-box:~$ validate_mapping_file.py -hcostello_timeseries_map.txt -o mapping_output
-Usage: validate_mapping_file.py [options] {-m/--mapping_fp MAPPING_FP}
+qiime@qiime-190-virtual-box:~$ split_libraries.py -mFasting_Map.txt -fFasting_example.fna -qFasting_Example.qual -osplit_library_output
+Error in split_libraries.py: No filepaths match pattern/name 'Fasting_example.fna'. All patterns must be matched at least once.
+
+If you need help with QIIME, see:
+http://help.qiime.org
+qiime@qiime-190-virtual-box:~$  split_libraries.py -mFasting_Map.txt -fFasting_Example.fna -qFasting_Example.qual -osplit_library_output
+qiime@qiime-190-virtual-box:~$ pick_otus.py
+Usage: pick_otus.py [options] {-i/--input_seqs_filepath INPUT_SEQS_FILEPATH}
 
 [] indicates optional input (order unimportant)
 {} indicates required input (order unimportant)
 
-Specifically, we check that:
+The OTU picking step assigns similar sequences to operational taxonomic units, or OTUs, by clustering sequences based on a user-defined similarity threshold. Sequences which are similar at or above the threshold level are taken to represent the presence of a taxonomic unit (e.g., a genus, when the similarity threshold is set at 0.94) in the sequence collection.
 
-    - The BarcodeSequence, LinkerPrimerSequences, and ReversePrimer fields
-       have valid IUPAC DNA characters, and BarcodeSequence characters
-       are non-degenerate (error)
-    - The SampleID, BarcodeSequence, LinkerPrimerSequence, and Description
-       headers are present. (error)
-    - There are not duplicate header fields (error)
-    - There are not duplicate barcodes (error)
-    - Barcodes are of the same length.  Suppressed when
-       variable_len_barcode flag is passed (warning)
-    - The headers do not contain invalid characters (alphanumeric and
-       underscore only) (warning)
-    - The data fields do not contain invalid characters (alphanumeric,
-       underscore, space, and +-%./:,; characters) (warning)
-    - SampleID fields are MIENS compliant (only alphanumeric
-       and . characters). (warning)
-    - There are no duplicates when the primer and variable length
-       barcodes are appended (error)
-    - There are no duplicates when barcodes and added demultiplex
-       fields (-j option) are combined (error)
-    - Data fields are not found beyond the Description column (warning)
+Currently, the following clustering methods have been implemented in QIIME:
 
-    Details about the metadata mapping file format can be found here:
-    http://www.qiime.org/documentation/file_formats.html#metadata-mapping-files
+1.  cd-hit (Li & Godzik, 2006; Li, Jaroszewski, & Godzik, 2001), which applies a "longest-sequence-first list removal algorithm" to cluster sequences.
 
-    Errors and warnings are saved to a log file.  Errors can be caused by
-    problems with the headers, invalid characters in barcodes or primers, or
-    by duplications in SampleIDs or barcodes.
+2.  blast (Altschul, Gish, Miller, Myers, & Lipman, 1990), which compares and clusters each sequence against a reference database of sequences.
 
-    Warnings can arise from invalid characters and variable length barcodes that
-    are not specified with the --variable_len_barcode.
-    Warnings will contain a reference to the cell (row,column) that the
-    warning arose from.
+3.  Mothur (Schloss et al., 2009), which requires an input file of aligned sequences.  The input file of aligned sequences may be generated from an input file like the one described below by running align_seqs.py.  For the Mothur method, the clustering algorithm may be specified as nearest-neighbor, furthest-neighbor, or average-neighbor.  The default algorithm is furthest-neighbor.
 
-    In addition to the log file, a "corrected_mapping" file will be created.
-    Any invalid characters will be replaced with '.' characters in
-    the SampleID fields (to enforce MIENS compliance) and text in other data
-    fields will be replaced with the character specified by the -c parameter,
-    which is an underscore "_" by default.
+4.  prefix/suffix [Qiime team, unpublished], which will collapse sequences which are identical in their first and/or last bases (i.e., their prefix and/or suffix). The prefix and suffix lengths are provided by the user and default to 50 each.
 
-    A html file will be created as well, which will show locations of
-    warnings and errors, highlighted in yellow and red respectively.  If no
-    errors or warnings were present the file will display a message saying
-    such.  Header errors can mask other errors, so these should be corrected
-    first.
+5.  Trie [Qiime team, unpublished], which collapsing identical sequences and sequences which are subsequences of other sequences.
 
-    If pooled primers are used, separate with a comma.  For instance, a pooled
-    set of three 27f primers (used to increase taxonomic coverage) could be
-    specified in the LinkerPrimerSequence fields as such:
-    AGGGTTCGATTCTGGCTCAG,AGAGTTTGATCCTGGCTTAG,AGAATTTGATCTTGGTTCAG
+6.  uclust (Edgar, RC 2010), creates "seeds" of sequences which generate clusters based on percent identity.
+
+7.  uclust_ref (Edgar, RC 2010), as uclust, but takes a reference database to use as seeds.  New clusters can be toggled on or off.
+
+8.  usearch (Edgar, RC 2010, version v5.2.236), creates "seeds" of sequences which generate clusters based on percent identity, filters low abundance clusters, performs de novo and reference based chimera detection.
+
+9.  usearch_ref (Edgar, RC 2010, version v5.2.236), as usearch, but takes a reference database to use as seeds.  New clusters can be toggled on or off.
+
+Quality filtering pipeline with usearch 5.X is described as usearch_qf "usearch quality filter", described here: http://qiime.org/tutorials/usearch_quality_filter.html
+
+8.  usearch61 (Edgar, RC 2010, version v6.1.544), creates "seeds" of sequences which generate clusters based on percent identity.
+
+9.  usearch61_ref (Edgar, RC 2010, version v6.1.544), as usearch61, but takes a reference database to use as seeds.  New clusters can be toggled on or off.
+
+10. sumaclust (Mercier, C. et al., 2014, version 1.0), creates "seeds" of sequences which generate clusters based on similarity threshold.
+
+11. sortmerna_v2 (Kopylova, E. et al., 2012), takes a reference database to use as seeds.
+
+12. swarm (Mahe, F. et al., 2014), creates "seeds" of sequences which generate clusters based on a resolution threshold.
+
+
+Chimera checking with usearch 6.X is implemented in identify_chimeric_seqs.py.  Chimera checking should be done first with usearch 6.X, and the filtered resulting fasta file can then be clustered.
+
+
+The primary inputs for pick_otus.py are:
+
+1. A FASTA file containing sequences to be clustered
+
+2. An OTU threshold (default is 0.97, roughly corresponding to species-level OTUs);
+
+3. The method to be applied for clustering sequences into OTUs.
+
+pick_otus.py takes a standard fasta file as input.
+
 
 
 Example usage: 
 Print help message and exit
- validate_mapping_file.py -h
+ pick_otus.py -h
 
-Example: Check the Fasting_Map.txt     mapping file for problems, supplying the required mapping file, and output     the results in the validate_mapping_file_output directory
- validate_mapping_file.py -m     Fasting_Map.txt -o validate_mapping_file_output
+Example (uclust method, default): Using the seqs.fna file generated from split_libraries.py and outputting the results to the directory "picked_otus_default/", while using default parameters (0.97 sequence similarity, no reverse strand matching)
+ pick_otus.py -i seqs.fna -o picked_otus_default
 
-Options:
-  --version             show program's version number and exit
-  -h, --help            show this help message and exit
-  -o OUTPUT_DIR, --output_dir=OUTPUT_DIR
-                        Required output directory for log file, corrected
-                        mapping file, and html file. [default: ./]
-  -v, --verbose         Enable printing information to standard out [default:
-                        True]
-  -c CHAR_REPLACE, --char_replace=CHAR_REPLACE
-                        Changes the default character used to replace invalid
-                        characters found in the mapping file.  Must be a valid
-                        character (alphanumeric, period, or
-                        underscore).[default: _]
-  -b, --not_barcoded    Use -b if barcodes are not present.  BarcodeSequence
-                        header still required.  [default: False]
-  -B, --variable_len_barcodes
-                        Use -B if variable length barcodes are present to
-                        suppress warnings about barcodes of unequal length.
-                        [default: False]
-  -p, --disable_primer_check
-                        Use -p to disable checks for primers.
-                        LinkerPrimerSequence header still required. [default:
-                        False]
-  -j ADDED_DEMULTIPLEX_FIELD, --added_demultiplex_field=ADDED_DEMULTIPLEX_FIELD
-                        Use -j to add a field to use in the mapping file as
-                        additional demultiplexing (can be used with or without
-                        barcodes).  All combinations of barcodes/primers and
-                        the these fields must be unique. The fields must
-                        contain values that can be parsed from the fasta
-                        labels such as "plate=R_2008_12_09".  In this case,
-                        "plate" would be the column header and "R_2008_12_09"
-                        would be the field data (minus quotes) in the mapping
-                        file.  To use the run prefix from the fasta label,
-                        such as ">FLP3FBN01ELBSX", where "FLP3FBN01" is
-                        generated from the run ID, use "-j run_prefix" and set
-                        the run prefix to be used as the data under the column
-                        header "run_prefix".  [default: none]
-  -s, --suppress_html   Use -s to disable html file generation, can be useful
-                        for extremely large mapping files. [default: False]
+To change the percent identity to a lower value, such as 90%, and also enable reverse strand matching, the command would be the following
+ pick_otus.py -i seqs.fna -o picked_otus_90_percent_rev/ -s 0.90 -z
 
-  REQUIRED options:
-    The following options must be provided under all circumstances.
+Uclust Reference-based OTU picking example: uclust_ref can be passed via -m to pick OTUs against a reference set where sequences within the similarity threshold to a reference sequence will cluster to an OTU defined by that reference sequence, and sequences outside of the similarity threshold to a reference sequence will form new clusters. OTU identifiers will be set to reference sequence identifiers when sequences cluster to reference sequences, and 'qiime_otu_<integer>' for new OTUs. Creation of new clusters can be suppressed by passing -C, in which case sequences outside of the similarity threshold to any reference sequence will be listed as failures in the log file, and not included in any OTU.
+ pick_otus.py -i seqs.fna -r refseqs.fasta -m uclust_ref --denovo_otu_id_prefix qiime_otu_
 
-    -m MAPPING_FP, --mapping_fp=MAPPING_FP
-                        Metadata mapping filepath [REQUIRED]
-qiime@qiime-190-virtual-box:~$ validate_mapping_file.py [-h] {-m/--mapping_fp MAPPING_FP}
-Error in validate_mapping_file.py: Positional argument detected: [-h]
- Be sure all parameters are identified by their option name.
- (e.g.: include the '-i' in '-i INPUT_DIR')
+Example (cdhit method): Using the seqs.fna file generated from split_libraries.py and outputting the results to the directory "cdhit_picked_otus/", while using default parameters (0.97 sequence similarity, no prefix filtering)
+ pick_otus.py -i seqs.fna -m cdhit -o cdhit_picked_otus/
 
-If you need help with QIIME, see:
-http://help.qiime.org
-qiime@qiime-190-virtual-box:~$  validate_mapping_file.py [-o OUTPUT_DR] {-m MAPPING_FPcostello_timeseries_map.txt}
-Error in validate_mapping_file.py: Positional argument detected: [-o
- Be sure all parameters are identified by their option name.
- (e.g.: include the '-i' in '-i INPUT_DIR')
+Currently the cd-hit OTU picker allows for users to perform a pre-filtering step, so that highly similar sequences are clustered prior to OTU picking. This works by collapsing sequences which begin with an identical n-base prefix, where n is specified by the -n parameter. A commonly used value here is 100 (e.g., -n 100). So, if using this filter with -n 100, all sequences which are identical in their first 100 bases will be clustered together, and only one representative sequence from each cluster will be passed to cd-hit. This is used to greatly decrease the run-time of cd-hit-based OTU picking when working with very large sequence collections, as shown by the following command
+ pick_otus.py -i seqs.fna -m cdhit -o cdhit_picked_otus_filter/ -n 100
 
-If you need help with QIIME, see:
-http://help.qiime.org
-qiime@qiime-190-virtual-box:~$ validate_mapping_file.py {-m MAPPING_FPcostello_timeseries_map.txt}
-Error in validate_mapping_file.py: Positional argument detected: {-m
- Be sure all parameters are identified by their option name.
- (e.g.: include the '-i' in '-i INPUT_DIR')
+Alternatively, if the user would like to collapse identical sequences, or those which are subsequences of other sequences prior to OTU picking, they can use the trie prefiltering ("-t") option as shown by the following command.
 
-If you need help with QIIME, see:
-http://help.qiime.org
-qiime@qiime-190-virtual-box:~$ validate_mapping_file.py -m MAPPING_FPcostello_timeseries_map.txt
-Error in validate_mapping_file.py: option -m: file does not exist: 'MAPPING_FPcostello_timeseries_map.txt'
+Note: It is highly recommended to use one of the prefiltering methods when analyzing large datasets (>100,000 seqs) to reduce run-time.
+ pick_otus.py -i seqs.fna -m cdhit -o cdhit_picked_otus_trie_prefilter/ -t
 
-If you need help with QIIME, see:
-http://help.qiime.org
-qiime@qiime-190-virtual-box:~$ validate_mapping_file.py -o OUTPUT_DIR costello_timeseries_map.txt
-Error in validate_mapping_file.py: Positional argument detected: costello_timeseries_map.txt
- Be sure all parameters are identified by their option name.
- (e.g.: include the '-i' in '-i INPUT_DIR')
+BLAST OTU-Picking Example: OTUs can be picked against a reference database using the BLAST OTU picker. This is useful, for example, when different regions of the SSU RNA have sequenced and a sequence similarity based approach like cd-hit therefore wouldn't work. When using the BLAST OTU picking method, the user must supply either a reference set of sequences or a reference database to compare against. The OTU identifiers resulting from this step will be the sequence identifiers in the reference database. This allows for use of a pre-existing tree in downstream analyses, which again is useful in cases where different regions of the 16s gene have been sequenced.
 
-If you need help with QIIME, see:
-http://help.qiime.org
-qiime@qiime-190-virtual-box:~$ validate_mapping_file.py --version
-Version: validate_mapping_file.py 1.9.1
-qiime@qiime-190-virtual-box:~$ validate_mapping_file.py -h
-Usage: validate_mapping_file.py [options] {-m/--mapping_fp MAPPING_FP}
+The following command can be used to blast against a reference sequence set, using the default E-value and sequence similarity (0.97) parameters
+ pick_otus.py -i seqs.fna -o blast_picked_otus/ -m blast -r refseqs.fasta
 
-[] indicates optional input (order unimportant)
-{} indicates required input (order unimportant)
+If you already have a pre-built BLAST database, you can pass the database prefix as shown by the following command
+ pick_otus.py -i seqs.fna -o blast_picked_otus_prebuilt_db/ -m blast -b refseqs.fasta
 
-Specifically, we check that:
+If the user would like to change the sequence similarity ("-s") and/or the E-value ("-e") for the blast method, they can use the following command
+ pick_otus.py -i seqs.fna -o blast_picked_otus_90_percent/ -m blast -r refseqs.fasta -s 0.90 -e 1e-30
 
-    - The BarcodeSequence, LinkerPrimerSequences, and ReversePrimer fields
-       have valid IUPAC DNA characters, and BarcodeSequence characters
-       are non-degenerate (error)
-    - The SampleID, BarcodeSequence, LinkerPrimerSequence, and Description
-       headers are present. (error)
-    - There are not duplicate header fields (error)
-    - There are not duplicate barcodes (error)
-    - Barcodes are of the same length.  Suppressed when
-       variable_len_barcode flag is passed (warning)
-    - The headers do not contain invalid characters (alphanumeric and
-       underscore only) (warning)
-    - The data fields do not contain invalid characters (alphanumeric,
-       underscore, space, and +-%./:,; characters) (warning)
-    - SampleID fields are MIENS compliant (only alphanumeric
-       and . characters). (warning)
-    - There are no duplicates when the primer and variable length
-       barcodes are appended (error)
-    - There are no duplicates when barcodes and added demultiplex
-       fields (-j option) are combined (error)
-    - Data fields are not found beyond the Description column (warning)
+Prefix-suffix OTU Picking Example: OTUs can be picked by collapsing sequences which begin and/or end with identical bases (i.e., identical prefixes or suffixes).  This OTU picker is currently likely to be of limited use on its own, but will be very useful in collapsing very similar sequences in a chained OTU picking strategy that is currently in development. For example, the user will be able to pick OTUs with this method, followed by representative set picking, and then re-pick OTUs on their representative set. This will allow for highly similar sequences to be collapsed, followed by running a slower OTU picker. This ability to chain OTU pickers is not yet supported in QIIME. The following command illustrates how to pick OTUs by collapsing sequences which are identical in their first 50 and last 25 bases
+ pick_otus.py -i seqs.fna -o prefix_suffix_picked_otus/ -m prefix_suffix -p 50 -u 25
 
-    Details about the metadata mapping file format can be found here:
-    http://www.qiime.org/documentation/file_formats.html#metadata-mapping-files
+Mothur OTU Picking Example: The Mothur program (http://www.mothur.org/) provides three clustering algorithms for OTU formation: furthest-neighbor (complete linkage), average-neighbor (group average), and nearest-neighbor (single linkage). Details on the algorithms may be found on the Mothur website and publications (Schloss et al., 2009). However, the running times of Mothur's clustering algorithms scale with the number of sequences squared, so the program may not be feasible for large data sets.
 
-    Errors and warnings are saved to a log file.  Errors can be caused by
-    problems with the headers, invalid characters in barcodes or primers, or
-    by duplications in SampleIDs or barcodes.
+The following command may be used to create OTUs based on a furthest-neighbor algorithm (the default setting) using aligned sequences as input
+ pick_otus.py -i seqs.aligned.fna -o mothur_picked_otus/ -m mothur
 
-    Warnings can arise from invalid characters and variable length barcodes that
-    are not specified with the --variable_len_barcode.
-    Warnings will contain a reference to the cell (row,column) that the
-    warning arose from.
+If you prefer to use a nearest-neighbor algorithm instead, you may specify this with the '-c' flag
+ pick_otus.py -i seqs.aligned.fna -o mothur_picked_otus_nn/ -m mothur -c nearest
 
-    In addition to the log file, a "corrected_mapping" file will be created.
-    Any invalid characters will be replaced with '.' characters in
-    the SampleID fields (to enforce MIENS compliance) and text in other data
-    fields will be replaced with the character specified by the -c parameter,
-    which is an underscore "_" by default.
+The sequence similarity parameter may also be specified. For example, the following command may be used to create OTUs at the level of 90% similarity
+ pick_otus.py -i seqs.aligned.fna -o mothur_picked_otus_90_percent/ -m mothur -s 0.90
 
-    A html file will be created as well, which will show locations of
-    warnings and errors, highlighted in yellow and red respectively.  If no
-    errors or warnings were present the file will display a message saying
-    such.  Header errors can mask other errors, so these should be corrected
-    first.
+usearch: Usearch (http://www.drive5.com/usearch/) provides clustering, chimera checking, and quality filtering. The following command specifies a minimum cluster size of 2 to be used during cluster size filtering
+ pick_otus.py -i seqs.fna -m usearch --word_length 64 --db_filepath refseqs.fasta -o usearch_qf_results/ --minsize 2
 
-    If pooled primers are used, separate with a comma.  For instance, a pooled
-    set of three 27f primers (used to increase taxonomic coverage) could be
-    specified in the LinkerPrimerSequence fields as such:
-    AGGGTTCGATTCTGGCTCAG,AGAGTTTGATCCTGGCTTAG,AGAATTTGATCTTGGTTCAG
+usearch example where reference-based chimera detection is disabled, and minimum cluster size filter is reduced from default (4) to 2: 
+ pick_otus.py -i seqs.fna -m usearch --word_length 64 --suppress_reference_chimera_detection --minsize 2 -o usearch_qf_results_no_ref_chim_detection/
 
+Use de novo OTU-picker Swarm: Using the seqs.fna file generated from split_libraries.py and outputting the results to the directory "$PWD/picked_otus_swarm/", while using default parameters (resolution = 1)
+ pick_otus.py -i $PWD/seqs.fna -m swarm -o $PWD/picked_otus_swarm
 
-Example usage: 
-Print help message and exit
- validate_mapping_file.py -h
-
-Example: Check the Fasting_Map.txt     mapping file for problems, supplying the required mapping file, and output     the results in the validate_mapping_file_output directory
- validate_mapping_file.py -m     Fasting_Map.txt -o validate_mapping_file_output
-
-Options:
-  --version             show program's version number and exit
-  -h, --help            show this help message and exit
-  -o OUTPUT_DIR, --output_dir=OUTPUT_DIR
-                        Required output directory for log file, corrected
-                        mapping file, and html file. [default: ./]
-  -v, --verbose         Enable printing information to standard out [default:
-                        True]
-  -c CHAR_REPLACE, --char_replace=CHAR_REPLACE
-                        Changes the default character used to replace invalid
-                        characters found in the mapping file.  Must be a valid
-                        character (alphanumeric, period, or
-                        underscore).[default: _]
-  -b, --not_barcoded    Use -b if barcodes are not present.  BarcodeSequence
-                        header still required.  [default: False]
-  -B, --variable_len_barcodes
-                        Use -B if variable length barcodes are present to
-                        suppress warnings about barcodes of unequal length.
-                        [default: False]
-  -p, --disable_primer_check
-                        Use -p to disable checks for primers.
-                        LinkerPrimerSequence header still required. [default:
-                        False]
-  -j ADDED_DEMULTIPLEX_FIELD, --added_demultiplex_field=ADDED_DEMULTIPLEX_FIELD
-                        Use -j to add a field to use in the mapping file as
-                        additional demultiplexing (can be used with or without
-                        barcodes).  All combinations of barcodes/primers and
-                        the these fields must be unique. The fields must
-                        contain values that can be parsed from the fasta
-                        labels such as "plate=R_2008_12_09".  In this case,
-                        "plate" would be the column header and "R_2008_12_09"
-                        would be the field data (minus quotes) in the mapping
-                        file.  To use the run prefix from the fasta label,
-                        such as ">FLP3FBN01ELBSX", where "FLP3FBN01" is
-                        generated from the run ID, use "-j run_prefix" and set
-                        the run prefix to be used as the data under the column
-                        header "run_prefix".  [default: none]
-  -s, --suppress_html   Use -s to disable html file generation, can be useful
-                        for extremely large mapping files. [default: False]
-
-  REQUIRED options:
-    The following options must be provided under all circumstances.
-
-    -m MAPPING_FP, --mapping_fp=MAPPING_FP
-                        Metadata mapping filepath [REQUIRED]
-qiime@qiime-190-virtual-box:~$ validate_mapping_file.py -o OUTPUT_DIR
-Error in validate_mapping_file.py: Required option --mapping_fp omitted.
-
-If you need help with QIIME, see:
-http://help.qiime.org
-qiime@qiime-190-virtual-box:~$ validate_mapping_file.py -o OUTPUT_DIR --mapping_fp
-Error in validate_mapping_file.py: --mapping_fp option requires an argument
-
-If you need help with QIIME, see:
-http://help.qiime.org
-qiime@qiime-190-virtual-box:~$ validate_mapping_file.py -m     costello_timeseries_map.txt -o validate_mapping_file_output
-Errors and/or warnings detected in mapping file.  Please check the log and html file for details.
-qiime@qiime-190-virtual-box:~$ split_libraries.py
-Usage: split_libraries.py [options] {-m/--map MAP_FNAME -f/--fasta FASTA_FNAMES}
-
-[] indicates optional input (order unimportant)
-{} indicates required input (order unimportant)
-
-Since newer sequencing technologies provide many reads per run (e.g. the 454 GS FLX Titanium series can produce 400-600 million base pairs with 400-500 base pair read lengths) researchers are now finding it useful to combine multiple samples into a single 454 run. This multiplexing is achieved through the application of a pyrosequencing-tailored nucleotide barcode design (described in (Parameswaran et al., 2007)). By assigning individual, unique sample specific barcodes, multiple sequencing runs may be performed in parallel and the resulting reads can later be binned according to sample. The script split_libraries.py performs this task, in addition to several quality filtering steps including user defined cut-offs for: sequence lengths; end-trimming; minimum quality score. To summarize, by using the fasta, mapping, and quality files, the program split_libraries.py will parse sequences that meet user defined quality thresholds and then rename each read with the appropriate Sample ID, thus formatting the sequence data for downstream analysis. If a combination of different sequencing technologies are used in any particular study, split_libraries.py can be used to perform the quality-filtering for each library individually and the output may then be combined.
-
-Sequences from samples that are not found in the mapping file (no corresponding barcode) and sequences without the correct primer sequence will be excluded. Additional scripts can be used to exclude sequences that match a given reference sequence (e.g. the human genome; exclude_seqs_by_blast.py) and/or sequences that are flagged as chimeras (identify_chimeric_seqs.py).
-
-
-Example usage: 
-Print help message and exit
- split_libraries.py -h
-
-Standard Example: Using a single 454 run, which contains a single FASTA, QUAL, and mapping file while using default parameters and outputting the data into the Directory "Split_Library_Output"
- split_libraries.py -m Mapping_File.txt -f 1.TCA.454Reads.fna -q 1.TCA.454Reads.qual -o Split_Library_Output/
-
-Multiple FASTA and QUAL Files Example: For the case where there are multiple FASTA and QUAL files, the user can run the following comma-separated command as long as there are not duplicate barcodes listed in the mapping file
- split_libraries.py -m Mapping_File.txt -f 1.TCA.454Reads.fna,2.TCA.454Reads.fna -q 1.TCA.454Reads.qual,2.TCA.454Reads.qual -o Split_Library_Output_comma_separated/
-
-Duplicate Barcode Example: An example of this situation would be a study with 1200 samples. You wish to have 400 samples per run, so you split the analysis into three runs and reuse barcoded primers (you only have 600). After initial analysis you determine a small subset is underrepresented (<500 sequences per samples) and you boost the number of sequences per sample for this subset by running a fourth run. Since the same sample IDs are in more than one run, it is likely that some sequences will be assigned the same unique identifier by split_libraries.py when it is run separately on the four different runs, each with their own barcode file. This will cause a problem in file concatenation of the four different runs into a single large file. To avoid this, you can use the '-n' parameter which defines a start index for split_libraries.py. From experience, most FLX runs (when combining both files for a single plate) will have 350,000 to 650,000 sequences. Thus, if Run 1 for split_libraries.py uses '-n 1000000', Run 2 uses '-n 2000000', etc., then you are guaranteed to have unique identifiers after concatenating the results of multiple FLX runs. With newer technologies you will just need to make sure that your start index spacing is greater than the potential number of sequences.
-
-To run split_libraries.py, you will need two or more (depending on the number of times the barcodes were reused) separate mapping files (one for each Run, for example one for Run1 and another one for Run2), then you can run split_libraries.py using the FASTA and mapping file for Run1 and FASTA and mapping file for Run2. Once you have run split libraries on each file independently, you can concatenate (e.g. using the 'cat' command) the sequence files that were generated by split_libraries.py. You can also concatenate the mapping files, since the barcodes are not necessary for downstream analyses, unless the same sample IDs are found in multiple mapping files.
-
-Run split_libraries.py on Run 1
- split_libraries.py -m Mapping_File.txt -f 1.TCA.454Reads.fna -q 1.TCA.454Reads.qual -o Split_Library_Run1_Output/ -n 1000000
-
-Run split_libraries.py on Run 2. The resulting FASTA files from Run 1 and Run 2 can then be concatenated using the 'cat' command (e.g. cat Split_Library_Run1_Output/seqs.fna Split_Library_Run2_Output/seqs.fna > Combined_seqs.fna) and used in downstream analyses.
- split_libraries.py -m Mapping_File.txt -f 2.TCA.454Reads.fna -q 2.TCA.454Reads.qual -o Split_Library_Run2_Output/ -n 2000000
-
-Barcode Decoding Example: The standard barcode types supported by split_libraries.py are golay (Length: 12 NTs) and hamming (Length: 8 NTs). For situations where the barcodes are of a different length than golay and hamming, the user can define a generic barcode type "-b" as an integer, where the integer is the length of the barcode used in the study.
-
-Note: When analyzing large datasets (>100,000 seqs), users may want to use a generic barcode type, even for length 8 and 12 NTs, since the golay and hamming decoding processes can be computationally intensive, which causes the script to run slow. Barcode correction can be disabled with the -c option if desired.
-
-For the case where the 8 base pair barcodes were used, you can use the following command
- split_libraries.py -m Mapping_File_8bp_barcodes.txt -f 1.TCA.454Reads.fna  -q 1.TCA.454Reads.qual -o split_Library_output_8bp/ -b 8
-
-Linkers and Primers: The linker and primer sequence (or all the degenerate possibilities) are associated with each barcode from the mapping file. If a barcode cannot be identified, all the possible primers in the mapping file are tested to find a matching sequence. Using truncated forms of the same primer can lead to unexpected results for rare circumstances where the barcode cannot be identified and the sequence following the barcode matches multiple primers.
-
-In many cases, sequence reads are long enough to sequence through the reverse primer and sequencing adapter.  To remove these primers and all following sequences, the -z option can be used.  By default, this option is set to 'disable'.  If it is set to 'truncate_only', split_libraries will trim the primer and any sequence following it if the primer is found.  If the 'truncate_remove' option is set, split_libraries.py will trim the primer if found, and will not write the sequence if the primer is not found. The allowed mismatches for the reverse primer are set with the --reverse_primer_mismatches parameter (default 0).  To use reverse primer removal, one must include a 'ReversePrimer' column in the mapping file, with the reverse primer recorded in the 5' to 3' orientation.
-
-Example reverse primer removal, where primers are trimmed if found, and sequence is written unchanged if not found.  Mismatches are increased to 1 from the default 0
- split_libraries.py -m Mapping_File_reverse_primer.txt -f 1.TCA.454Reads.fna -q 1.TCA.454Reads.qual -o split_libraries_output_revprimer/ --reverse_primer_mismatches 1 -z truncate_only
-
-qiime@qiime-190-virtual-box:~$ split_libraries.py -mFasting_Map.txt -f Fasting.fna -q Fasting_example.qual -i split_library_output
-Error in split_libraries.py: option -m: file does not exist: 'Fasting_Map.txt'
-
-If you need help with QIIME, see:
-http://help.qiime.org
-qiime@qiime-190-virtual-box:~$ split_libraries.py -mcostello_timeseries_map_corrected.txt -f Fasting.fna -q Fasting_example.qual -i split_library_output
-Error in split_libraries.py: option -m: file does not exist: 'costello_timeseries_map_corrected.txt'
-
-If you need help with QIIME, see:
-http://help.qiime.org
-qiime@qiime-190-virtual-box:~$ split_libraries.py -mcostello_timeseries_map_corrected.txt -f Fasting.fna -q Fasting_example.qual -i split_library_output
-Error in split_libraries.py: No filepaths match pattern/name 'Fasting.fna'. All patterns must be matched at least once.
-
-If you need help with QIIME, see:
-http://help.qiime.org
-qiime@qiime-190-virtual-box:~$ split_libraries.py -mcostello_timeseries_map_corrected.txt -f step1_rep_set.fna -q Fasting_example.qual -i split_library_output
-Error in split_libraries.py: No filepaths match pattern/name 'step1_rep_set.fna'. All patterns must be matched at least once.
-
-If you need help with QIIME, see:
-http://help.qiime.org
-qiime@qiime-190-virtual-box:~$ split_libraries.py -mcostello_timeseries_map_corrected.txt -f step1_rep_set.fna -q Fasting_example.qual -i split_library_output
-Error in split_libraries.py: No filepaths match pattern/name 'Fasting_example.qual'. All patterns must be matched at least once.
-
-If you need help with QIIME, see:
-http://help.qiime.org
-qiime@qiime-190-virtual-box:~$ split_libraries.py -mcostello_timeseries_map_corrected.txt -f step1_rep_set.fna -i split_library_output
-/usr/local/lib/python2.7/dist-packages/numpy/core/_methods.py:59: RuntimeWarning: Mean of empty slice.
-  warnings.warn("Mean of empty slice.", RuntimeWarning)
-Traceback (most recent call last):
-  File "/usr/local/bin/split_libraries.py", line 411, in <module>
-    main()
-  File "/usr/local/bin/split_libraries.py", line 408, in main
-    truncate_ambi_bases=opts.truncate_ambi_bases)
-  File "/usr/local/lib/python2.7/dist-packages/qiime/split_libraries.py", line 1447, in preprocess
-    reverse_primer_mismatches, truncate_ambi_bases)
-  File "/usr/local/lib/python2.7/dist-packages/qiime/split_libraries.py", line 900, in check_seqs
-    float(median_length_filtering)
-ValueError: could not convert string to float: split_library_output
 qiime@qiime-190-virtual-box:~$ 
+
+
+ pick_otus.py -i seqs.fna -m cdhit -o cdhit_picked_otus_trie_prefilter/ -t
+
+BLAST OTU-Picking Example: OTUs can be picked against a reference database using the BLAST OTU picker. This is useful, for example, when different regions of the SSU RNA have sequenced and a sequence similarity based approach like cd-hit therefore wouldn't work. When using the BLAST OTU picking method, the user must supply either a reference set of sequences or a reference database to compare against. The OTU identifiers resulting from this step will be the sequence identifiers in the reference database. This allows for use of a pre-existing tree in downstream analyses, which again is useful in cases where different regions of the 16s gene have been sequenced.
+
+The following command can be used to blast against a reference sequence set, using the default E-value and sequence similarity (0.97) parameters
+ pick_otus.py -i seqs.fna -o blast_picked_otus/ -m blast -r refseqs.fasta
+
+If you already have a pre-built BLAST database, you can pass the database prefix as shown by the following command
+ pick_otus.py -i seqs.fna -o blast_picked_otus_prebuilt_db/ -m blast -b refseqs.fasta
+
+If the user would like to change the sequence similarity ("-s") and/or the E-value ("-e") for the blast method, they can use the following command
+ pick_otus.py -i seqs.fna -o blast_picked_otus_90_percent/ -m blast -r refseqs.fasta -s 0.90 -e 1e-30
+
+Prefix-suffix OTU Picking Example: OTUs can be picked by collapsing sequences which begin and/or end with identical bases (i.e., identical prefixes or suffixes).  This OTU picker is currently likely to be of limited use on its own, but will be very useful in collapsing very similar sequences in a chained OTU picking strategy that is currently in development. For example, the user will be able to pick OTUs with this method, followed by representative set picking, and then re-pick OTUs on their representative set. This will allow for highly similar sequences to be collapsed, followed by running a slower OTU picker. This ability to chain OTU pickers is not yet supported in QIIME. The following command illustrates how to pick OTUs by collapsing sequences which are identical in their first 50 and last 25 bases
+ pick_otus.py -i seqs.fna -o prefix_suffix_picked_otus/ -m prefix_suffix -p 50 -u 25
+
+Mothur OTU Picking Example: The Mothur program (http://www.mothur.org/) provides three clustering algorithms for OTU formation: furthest-neighbor (complete linkage), average-neighbor (group average), and nearest-neighbor (single linkage). Details on the algorithms may be found on the Mothur website and publications (Schloss et al., 2009). However, the running times of Mothur's clustering algorithms scale with the number of sequences squared, so the program may not be feasible for large data sets.
+
+The following command may be used to create OTUs based on a furthest-neighbor algorithm (the default setting) using aligned sequences as input
+ pick_otus.py -i seqs.aligned.fna -o mothur_picked_otus/ -m mothur
+
+If you prefer to use a nearest-neighbor algorithm instead, you may specify this with the '-c' flag
+ pick_otus.py -i seqs.aligned.fna -o mothur_picked_otus_nn/ -m mothur -c nearest
+
+The sequence similarity parameter may also be specified. For example, the following command may be used to create OTUs at the level of 90% similarity
+ pick_otus.py -i seqs.aligned.fna -o mothur_picked_otus_90_percent/ -m mothur -s 0.90
+
+usearch: Usearch (http://www.drive5.com/usearch/) provides clustering, chimera checking, and quality filtering. The following command specifies a minimum cluster size of 2 to be used during cluster size filtering
+ pick_otus.py -i seqs.fna -m usearch --word_length 64 --db_filepath refseqs.fasta -o usearch_qf_results/ --minsize 2
+
+usearch example where reference-based chimera detection is disabled, and minimum cluster size filter is reduced from default (4) to 2: 
+ pick_otus.py -i seqs.fna -m usearch --word_length 64 --suppress_reference_chimera_detection --minsize 2 -o usearch_qf_results_no_ref_chim_detection/
+
+Use de novo OTU-picker Swarm: Using the seqs.fna file generated from split_libraries.py and outputting the results to the directory "$PWD/picked_otus_swarm/", while using default parameters (resolution = 1)
+ pick_otus.py -i $PWD/seqs.fna -m swarm -o $PWD/picked_otus_swarm
+
+Options:
+  --version             show program's version number and exit
+  -h, --help            show this help message and exit
+  -v, --verbose         Print information during execution -- useful for
+                        debugging [default: False]
+  -m OTU_PICKING_METHOD, --otu_picking_method=OTU_PICKING_METHOD
+                        Method for picking OTUs.  Valid choices are:
+                        sortmerna, mothur, trie, uclust_ref, usearch,
+                        usearch_ref, blast, usearch61, usearch61_ref,
+                        sumaclust, swarm, prefix_suffix, cdhit, uclust. The
+                        mothur method requires an input file of aligned
+                        sequences.  usearch will enable the usearch quality
+                        filtering pipeline. [default: uclust]
+  -c CLUSTERING_ALGORITHM, --clustering_algorithm=CLUSTERING_ALGORITHM
+                        Clustering algorithm for mothur otu picking method.
+                        Valid choices are: furthest, nearest, average.
+                        [default: furthest]
+  -M MAX_CDHIT_MEMORY, --max_cdhit_memory=MAX_CDHIT_MEMORY
+                        Maximum available memory to cd-hit-est (via the
+                        program's -M option) for cdhit OTU picking method
+                        (units of Mbyte) [default: 400]
+  -o OUTPUT_DIR, --output_dir=OUTPUT_DIR
+                        Path to store result file [default:
+                        ./<OTU_METHOD>_picked_otus/]
+  -r REFSEQS_FP, --refseqs_fp=REFSEQS_FP
+                        Path to reference sequences to search against when
+                        using -m blast, -m sortmerna, -m uclust_ref, -m
+                        usearch_ref, or -m usearch61_ref [default:
+                        /usr/local/lib/python2.7/dist-packages/qiime_default_r
+                        eference/gg_13_8_otus/rep_set/97_otus.fasta]
+  -b BLAST_DB, --blast_db=BLAST_DB
+                        Pre-existing database to blast against when using -m
+                        blast [default: none]
+  -e MAX_E_VALUE_BLAST, --max_e_value_blast=MAX_E_VALUE_BLAST
+                        Max E-value when clustering with BLAST [default:
+                        1e-10]
+  --sortmerna_db=SORTMERNA_DB
+                        Pre-existing database to search against when using -m
+                        sortmerna [default: none]
+  --sortmerna_e_value=SORTMERNA_E_VALUE
+                        Maximum E-value when clustering [default = 1]
+  --sortmerna_coverage=SORTMERNA_COVERAGE
+                        Mininum percent query coverage (of an alignment) to
+                        consider a hit, expressed as a fraction between 0 and
+                        1 [default: 0.97]
+  --sortmerna_tabular   Output alignments in the Blast tabular format with two
+                        additional columns including the CIGAR string and the
+                        percent query coverage [default: False]
+  --sortmerna_best_N_alignments=SORTMERNA_BEST_N_ALIGNMENTS
+                        Must be set together with --sortmerna_tabular. This
+                        option specifies how many alignments per read will be
+                        written [default: 1]
+  --sortmerna_max_pos=SORTMERNA_MAX_POS
+                        The maximum number of positions per seed to store  in
+                        the indexed database [default: 10000]
+  --min_aligned_percent=MIN_ALIGNED_PERCENT
+                        Minimum percent of query sequence that can be aligned
+                        to consider a hit, expressed as a fraction between 0
+                        and 1 (BLAST OTU picker only) [default: 0.5]
+  -s SIMILARITY, --similarity=SIMILARITY
+                        Sequence similarity threshold (for blast, cdhit,
+                        uclust, uclust_ref, usearch, usearch_ref, usearch61,
+                        usearch61_ref, sumaclust, and sortmerna) [default:
+                        0.97]
+  --sumaclust_exact     A sequence is assigned to the best matching seed
+                        rather than the first matching seed passing the
+                        similarity threshold [default: False]
+  --sumaclust_l         Reference sequence length if the shortest [default:
+                        True]
+  --denovo_otu_id_prefix=DENOVO_OTU_ID_PREFIX
+                        OTU identifier prefix (string) for the de novo OTU
+                        pickers (sumaclust, swarm and uclust) [default:
+                        denovo, OTU ids are ascendingintegers]
+  --swarm_resolution=SWARM_RESOLUTION
+                        Maximum number of differences allowed between two
+                        amplicons, meaning that two amplicons will be grouped
+                        if they have integer (or less) differences (see Swarm
+                        manual at https://github.com/torognes/swarm for more
+                        details). [default: 1]
+  -q, --trie_reverse_seqs
+                        Reverse seqs before picking OTUs with the Trie OTU
+                        picker for suffix (rather than prefix) collapsing
+                        [default: False]
+  -n PREFIX_PREFILTER_LENGTH, --prefix_prefilter_length=PREFIX_PREFILTER_LENGTH
+                        Prefilter data so seqs with identical first
+                        prefix_prefilter_length are automatically grouped into
+                        a single OTU.  This is useful for large sequence
+                        collections where OTU picking doesn't scale well
+                        [default: none; 100 is a good value]
+  -t, --trie_prefilter  prefilter data so seqs which are identical prefixes of
+                        a longer seq are automatically grouped into a single
+                        OTU; useful for large sequence collections where OTU
+                        picking doesn't scale well [default: False]
+  -p PREFIX_LENGTH, --prefix_length=PREFIX_LENGTH
+                        Prefix length when using the prefix_suffix otu picker;
+                        WARNING: CURRENTLY DIFFERENT FROM
+                        prefix_prefilter_length (-n)! [default: 50]
+  -u SUFFIX_LENGTH, --suffix_length=SUFFIX_LENGTH
+                        Suffix length when using the prefix_suffix otu picker
+                        [default: 50]
+  -z, --enable_rev_strand_match
+                        Enable reverse strand matching for uclust, uclust_ref,
+                        usearch, usearch_ref, usearch61, or usearch61_ref otu
+                        picking, will double the amount of memory used.
+                        [default: False]
+  -D, --suppress_presort_by_abundance_uclust
+                        Suppress presorting of sequences by abundance when
+                        picking OTUs with uclust or uclust_ref [default:
+                        False]
+  -A, --optimal_uclust  Pass the --optimal flag to uclust for uclust otu
+                        picking. [default: False]
+  -E, --exact_uclust    Pass the --exact flag to uclust for uclust otu
+                        picking. [default: False]
+  -B, --user_sort       Pass the --user_sort flag to uclust for uclust otu
+                        picking. [default: False]
+  -C, --suppress_new_clusters
+                        Suppress creation of new clusters using seqs that
+                        don't match reference when using -m uclust_ref, -m
+                        usearch61_ref, or -m usearch_ref [default: False]
+  --max_accepts=MAX_ACCEPTS
+                        max_accepts value to uclust, uclust_ref, usearch61,
+                        and usearch61_ref.  By default, will use value
+                        suggested by method (uclust: 1, usearch61: 1)
+                        [default: default]
+  --max_rejects=MAX_REJECTS
+                        max_rejects value for uclust, uclust_ref, usearch61,
+                        and usearch61_ref.  With default settings, will use
+                        value recommended by clustering method used (uclust:
+                        8, usearch61: 8 for usearch_fast_cluster option, 32
+                        for reference and smallmem options) [default: default]
+  --stepwords=STEPWORDS
+                        stepwords value to uclust and uclust_ref [default: 8]
+  --word_length=WORD_LENGTH
+                        word length value for uclust, uclust_ref, and usearch,
+                        usearch_ref, usearch61, and usearch61_ref. With
+                        default setting, will use the setting recommended by
+                        the method (uclust: 8, usearch: 64, usearch61: 8).
+                        int value can be supplied to override this setting.
+                        [default: default]
+  --suppress_uclust_stable_sort
+                        Don't pass --stable-sort to uclust [default: False]
+  --suppress_prefilter_exact_match
+                        Don't collapse exact matches before calling sortmerna,
+                        sumaclust or uclust [default: False]
+  -d, --save_uc_files   Enable preservation of intermediate uclust (.uc) files
+                        that are used to generate clusters via uclust.  Also
+                        enables preservation of all intermediate files created
+                        by usearch  and usearch61. [default: True]
+  -j PERCENT_ID_ERR, --percent_id_err=PERCENT_ID_ERR
+                        Percent identity threshold for cluster error detection
+                        with usearch, expressed as a fraction between 0 and 1.
+                        [default: 0.97]
+  -g MINSIZE, --minsize=MINSIZE
+                        Minimum cluster size for size filtering with usearch.
+                        [default: 4]
+  -a ABUNDANCE_SKEW, --abundance_skew=ABUNDANCE_SKEW
+                        Abundance skew setting for de novo chimera detection
+                        with usearch. [default: 2.0]
+  -f DB_FILEPATH, --db_filepath=DB_FILEPATH
+                        Reference database of fasta sequences for reference
+                        based chimera detection with usearch. [default: none]
+  --perc_id_blast=PERC_ID_BLAST
+                        Percent ID for mapping OTUs created by usearch back to
+                        original sequence IDs [default: 0.97]
+  --de_novo_chimera_detection=DE_NOVO_CHIMERA_DETECTION
+                        Deprecated:  de novo chimera detection performed by
+                        default, pass --suppress_de_novo_chimera_detection to
+                        disable. [default: none]
+  -k, --suppress_de_novo_chimera_detection
+                        Suppress de novo chimera detection in usearch.
+                        [default: False]
+  --reference_chimera_detection=REFERENCE_CHIMERA_DETECTION
+                        Deprecated:  Reference based chimera detection
+                        performed by default, pass
+                        --supress_reference_chimera_detection to disable
+                        [default: none]
+  -x, --suppress_reference_chimera_detection
+                        Suppress reference based chimera detection in usearch.
+                        [default: False]
+  --cluster_size_filtering=CLUSTER_SIZE_FILTERING
+                        Deprecated, cluster size filtering enabled by default,
+                        pass --suppress_cluster_size_filtering to disable.
+                        [default: none]
+  -l, --suppress_cluster_size_filtering
+                        Suppress cluster size filtering in usearch.  [default:
+                        False]
+  --remove_usearch_logs
+                        Disable creation of logs when usearch is called.  Up
+                        to nine logs are created, depending on filtering steps
+                        enabled.  [default: False]
+  --derep_fullseq       Dereplication of full sequences, instead of
+                        subsequences. Faster than the default --derep_subseqs
+                        in usearch. [default: False]
+  -F NON_CHIMERAS_RETENTION, --non_chimeras_retention=NON_CHIMERAS_RETENTION
+                        Selects subsets of sequences detected as non-chimeras
+                        to retain after de novo and reference based chimera
+                        detection.  Options are intersection or union.  union
+                        will retain sequences that are flagged as non-chimeric
+                        from either filter, while intersection will retain
+                        only those sequences that are flagged as non-chimeras
+                        from both detection methods. [default: union]
+  --minlen=MINLEN       Minimum length of sequence allowed for usearch,
+                        usearch_ref, usearch61, and usearch61_ref. [default:
+                        64]
+  --usearch_fast_cluster
+                        Use fast clustering option for usearch or
+                        usearch61_ref with new clusters.
+                        --enable_rev_strand_match can not be enabled with this
+                        option, and the only valid option for
+                        usearch61_sort_method is 'length'.  This option uses
+                        more memory than the default option for de novo
+                        clustering. [default: False]
+  --usearch61_sort_method=USEARCH61_SORT_METHOD
+                        Sorting method for usearch61 and usearch61_ref.  Valid
+                        options are abundance, length, or None.  If the
+                        --usearch_fast_cluster option is enabled, the only
+                        sorting method allowed in length. [default: abundance]
+  --sizeorder           Enable size based preference in clustering with
+                        usearch61. Requires that --usearch61_sort_method be
+                        abundance. [default: False]
+  --threads=THREADS     Specify number of threads (1 thread per core) to be
+                        used for usearch61, sortmerna, sumaclust and swarm
+                        commands that utilize multithreading. [default: 1]
+
+  REQUIRED options:
+    The following options must be provided under all circumstances.
+
+    -i INPUT_SEQS_FILEPATH, --input_seqs_filepath=INPUT_SEQS_FILEPATH
+                        Path to input sequences file [REQUIRED]
+qiime@qiime-190-virtual-box:~$ 
+qiime@qiime-190-virtual-box:~$ Example (uclust method, default): Using the seqs.fna file generated from split_libraries.py and outputting the results to the directory "picked_otus_default/", while using default parameters (0.97 sequence similarity, no reverse strand matching)
+bash: syntax error near unexpected token `uclust'
+qiime@qiime-190-virtual-box:~$  pick_otus.py -i seqs.fna -o picked_otus_default
+Error in pick_otus.py: option -i: file does not exist: 'seqs.fna'
+
+If you need help with QIIME, see:
+http://help.qiime.org
+qiime@qiime-190-virtual-box:~$ 
+qiime@qiime-190-virtual-box:~$ To change the percent identity to a lower value, such as 90%, and also enable reverse strand matching, the command would be the following
+To: command not found
+qiime@qiime-190-virtual-box:~$  pick_otus.py -i seqs.fna -o picked_otus_90_percent_rev/ -s 0.90 -z
+Error in pick_otus.py: option -i: file does not exist: 'seqs.fna'
+
+If you need help with QIIME, see:
+http://help.qiime.org
+qiime@qiime-190-virtual-box:~$ 
+qiime@qiime-190-virtual-box:~$ Uclust Reference-based OTU picking example: uclust_ref can be passed via -m to pick OTUs against a reference set where sequences within the similarity threshold to a reference sequence will cluster to an OTU defined by that reference sequence, and sequences outside of the similarity threshold to a reference sequence will form new clusters. OTU identifiers will be set to reference sequence identifiers when sequences cluster to reference sequences, and 'qiime_otu_<integer>' for new OTUs. Creation of new clusters can be suppressed by passing -C, in which case sequences outside of the similarity threshold to any reference sequence will be listed as failures in the log file, and not included in any OTU.
+Uclust: command not found
+qiime@qiime-190-virtual-box:~$  pick_otus.py -i seqs.fna -r refseqs.fasta -m uclust_ref --denovo_otu_id_prefix qiime_otu_
+Error in pick_otus.py: option -i: file does not exist: 'seqs.fna'
+
+If you need help with QIIME, see:
+http://help.qiime.org
+qiime@qiime-190-virtual-box:~$ 
+qiime@qiime-190-virtual-box:~$ Example (cdhit method): Using the seqs.fna file generated from split_libraries.py and outputting the results to the directory "cdhit_picked_otus/", while using default parameters (0.97 sequence similarity, no prefix filtering)
+bash: syntax error near unexpected token `cdhit'
+qiime@qiime-190-virtual-box:~$  pick_otus.py -i seqs.fna -m cdhit -o cdhit_picked_otus/
+Error in pick_otus.py: option -i: file does not exist: 'seqs.fna'
+
+If you need help with QIIME, see:
+http://help.qiime.org
+qiime@qiime-190-virtual-box:~$ 
+qiime@qiime-190-virtual-box:~$ Currently the cd-hit OTU picker allows for users to perform a pre-filtering step, so that highly similar sequences are clustered prior to OTU picking. This works by collapsing sequences which begin with an identical n-base prefix, where n is specified by the -n parameter. A commonly used value here is 100 (e.g., -n 100). So, if using this filter with -n 100, all sequences which are identical in their first 100 bases will be clustered together, and only one representative sequence from each cluster will be passed to cd-hit. This is used to greatly decrease the run-time of cd-hit-based OTU picking when working with very large sequence collections, as shown by the following command
+bash: syntax error near unexpected token `('
+qiime@qiime-190-virtual-box:~$  pick_otus.py -i seqs.fna -m cdhit -o cdhit_picked_otus_filter/ -n 100
+Error in pick_otus.py: option -i: file does not exist: 'seqs.fna'
+
+If you need help with QIIME, see:
+http://help.qiime.org
+qiime@qiime-190-virtual-box:~$ 
+qiime@qiime-190-virtual-box:~$ Alternatively, if the user would like to collapse identical sequences, or those which are subsequences of other sequences prior to OTU picking, they can use the trie prefiltering ("-t") option as shown by the following command.
+bash: syntax error near unexpected token `('
+qiime@qiime-190-virtual-box:~$ 
+qiime@qiime-190-virtual-box:~$ Note: It is highly recommended to use one of the prefiltering methods when analyzing large datasets (>100,000 seqs) to reduce run-time.
+bash: syntax error near unexpected token `('
+qiime@qiime-190-virtual-box:~$  pick_otus.py -i seqs.fna -m cdhit -o cdhit_picked_otus_trie_prefilter/ -t
+Error in pick_otus.py: option -i: file does not exist: 'seqs.fna'
+
+If you need help with QIIME, see:
+http://help.qiime.org
+qiime@qiime-190-virtual-box:~$ 
+qiime@qiime-190-virtual-box:~$ BLAST OTU-Picking Example: OTUs can be picked against a reference database using the BLAST OTU picker. This is useful, for example, when different regions of the SSU RNA have sequenced and a sequence similarity based approach like cd-hit therefore wouldn't work. When using the BLAST OTU picking method, the user must supply either a reference set of sequences or a reference database to compare against. The OTU identifiers resulting from this step will be the sequence identifiers in the reference database. This allows for use of a pre-existing tree in downstream analyses, which again is useful in cases where different regions of the 16s gene have been sequenced.
+> 
+> The following command can be used to blast against a reference sequence set, using the default E-value and sequence similarity (0.97) parameters
+>  pick_otus.py -i seqs.fna -o blast_picked_otus/ -m blast -r refseqs.fasta
+> 
+> If you already have a pre-built BLAST database, you can pass the database prefix as shown by the following command
+>  pick_otus.py -i seqs.fna -o blast_picked_otus_prebuilt_db/ -m blast -b refseqs.fasta
+> 
+> If the user would like to change the sequence similarity ("-s") and/or the E-value ("-e") for the blast method, they can use the following command
+>  pick_otus.py -i seqs.fna -o blast_picked_otus_90_percent/ -m blast -r refseqs.fasta -s 0.90 -e 1e-30
+> 
+> Prefix-suffix OTU Picking Example: OTUs can be picked by collapsing sequences which begin and/or end with identical bases (i.e., identical prefixes or suffixes).  This OTU picker is currently likely to be of limited use on its own, but will be very useful in collapsing very similar sequences in a chained OTU picking strategy that is currently in development. For example, the user will be able to pick OTUs with this method, followed by representative set picking, and then re-pick OTUs on their representative set. This will allow for highly similar sequences to be collapsed, followed by running a slower OTU picker. This ability to chain OTU pickers is not yet supported in QIIME. The following command illustrates how to pick OTUs by collapsing sequences which are identical in their first 50 and last 25 bases
+>  pick_otus.py -i seqs.fna -o prefix_suffix_picked_otus/ -m prefix_suffix -p 50 -u 25
+> 
+> Mothur OTU Picking Example: The Mothur program (http://www.mothur.org/) provides three clustering algorithms for OTU formation: furthest-neighbor (complete linkage), average-neighbor (group average), and nearest-neighbor (single linkage). Details on the algorithms may be found on the Mothur website and publications (Schloss et al., 2009). However, the running times of Mothur's clustering algorithms scale with the number of sequences squared, so the program may not be feasible for large data sets.
+BLAST: command not found
+qiime@qiime-190-virtual-box:~$ 
+qiime@qiime-190-virtual-box:~$ The following command may be used to create OTUs based on a furthest-neighbor algorithm (the default setting) using aligned sequences as input
+bash: syntax error near unexpected token `('
+qiime@qiime-190-virtual-box:~$  pick_otus.py -i seqs.aligned.fna -o mothur_picked_otus/ -m mothur
+Error in pick_otus.py: option -i: file does not exist: 'seqs.aligned.fna'
+
+If you need help with QIIME, see:
+http://help.qiime.org
+qiime@qiime-190-virtual-box:~$ 
+qiime@qiime-190-virtual-box:~$ If you prefer to use a nearest-neighbor algorithm instead, you may specify this with the '-c' flag
+If: command not found
+qiime@qiime-190-virtual-box:~$  pick_otus.py -i seqs.aligned.fna -o mothur_picked_otus_nn/ -m mothur -c nearest
+Error in pick_otus.py: option -i: file does not exist: 'seqs.aligned.fna'
+
+If you need help with QIIME, see:
+http://help.qiime.org
+qiime@qiime-190-virtual-box:~$ 
+qiime@qiime-190-virtual-box:~$ The sequence similarity parameter may also be specified. For example, the following command may be used to create OTUs at the level of 90% similarity
+No command 'The' found, did you mean:
+ Command 'the' from package 'the' (universe)
+The: command not found
+qiime@qiime-190-virtual-box:~$  pick_otus.py -i seqs.aligned.fna -o mothur_picked_otus_90_percent/ -m mothur -s 0.90
+Error in pick_otus.py: option -i: file does not exist: 'seqs.aligned.fna'
+
+If you need help with QIIME, see:
+http://help.qiime.org
+qiime@qiime-190-virtual-box:~$ 
+qiime@qiime-190-virtual-box:~$ usearch: Usearch (http://www.drive5.com/usearch/) provides clustering, chimera checking, and quality filtering. The following command specifies a minimum cluster size of 2 to be used during cluster size filtering
+bash: syntax error near unexpected token `('
+qiime@qiime-190-virtual-box:~$  pick_otus.py -i seqs.fna -m usearch --word_length 64 --db_filepath refseqs.fasta -o usearch_qf_results/ --minsize 2
+Error in pick_otus.py: option -i: file does not exist: 'seqs.fna'
+
+If you need help with QIIME, see:
+http://help.qiime.org
+qiime@qiime-190-virtual-box:~$ 
+qiime@qiime-190-virtual-box:~$ usearch example where reference-based chimera detection is disabled, and minimum cluster size filter is reduced from default (4) to 2: 
+bash: syntax error near unexpected token `('
+qiime@qiime-190-virtual-box:~$  pick_otus.py -i seqs.fna -m usearch --word_length 64 --suppress_reference_chimera_detection --minsize 2 -o usearch_qf_results_no_ref_chim_detection/
+Error in pick_otus.py: option -i: file does not exist: 'seqs.fna'
+
+If you need help with QIIME, see:
+http://help.qiime.org
+qiime@qiime-190-virtual-box:~$ 
+qiime@qiime-190-virtual-box:~$ Use de novo OTU-picker Swarm: Using the seqs.fna file generated from split_libraries.py and outputting the results to the directory "$PWD/picked_otus_swarm/", while using default parameters (resolution = 1)
+bash: syntax error near unexpected token `('
+qiime@qiime-190-virtual-box:~$  pick_otus.py -i $PWD/seqs.fna -m swarm -o $PWD/picked_otus_swarm
+Error in pick_otus.py: option -i: file does not exist: '/home/qiime/seqs.fna'
+
+If you need help with QIIME, see:
+http://help.qiime.org
+qiime@qiime-190-virtual-box:~$ 
+qiime@qiime-190-virtual-box:~$ qiime@qiime-190-virtual-box:~$ 
+qiime@qiime-190-virtual-box:~$: command not found
+
